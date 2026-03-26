@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resonance — Handcrafted Guitars</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ─── RESET & BASE ─────────────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --color-bg:         #0a0a0a;
+      --color-surface:    #111111;
+      --color-surface-2:  #161616;
+      --color-border:     #222222;
+      --color-accent:     #c9a84c;
+      --color-accent-dim: #9a7a35;
+      --color-text:       #e8e8e8;
+      --color-muted:      #888888;
+      --font-heading:     'Cormorant Garamond', Georgia, serif;
+      --font-body:        'Inter', system-ui, sans-serif;
+      --max-w:            1200px;
+      --transition:       0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    img { display: block; max-width: 100%; }
+    a   { color: inherit; text-decoration: none; }
+
+    /* ─── LOADER ───────────────────────────────────────────────── */
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.8s ease;
+    }
+    #loader.hidden { opacity: 0; pointer-events: none; }
+    #loader-label {
+      font-family: var(--font-body);
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 20px;
+    }
+    #loader-track {
+      width: 180px;
+      height: 1px;
+      background: #222;
+    }
+    #loader-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--color-accent);
+      transition: width 0.1s linear;
+    }
+
+    /* ─── NAV ──────────────────────────────────────────────────── */
+    #nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 0 2rem;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.4s ease, border-color 0.4s ease;
+      border-bottom: 1px solid transparent;
+    }
+    #nav.scrolled {
+      background: rgba(10, 10, 10, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom-color: var(--color-border);
+    }
+
+    .nav-logo {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: var(--color-text);
+    }
+    .nav-logo span { color: var(--color-accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      transition: color 0.3s ease;
+    }
+    .nav-links a:hover { color: var(--color-accent); }
+
+    .nav-cta {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.6rem 1.4rem;
+      border: 1px solid var(--color-accent);
+      color: var(--color-accent);
+      transition: background 0.3s, color 0.3s;
+    }
+    .nav-cta:hover {
+      background: var(--color-accent);
+      color: #000;
+    }
+
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+    .nav-hamburger span {
+      display: block;
+      width: 22px;
+      height: 1px;
+      background: var(--color-text);
+      transition: transform 0.3s, opacity 0.3s;
+    }
+
+    /* ─── HERO SCROLL SECTION ──────────────────────────────────── */
+    #scroll-container { height: 500vh; position: relative; }
+
+    #hero-canvas {
+      position: sticky;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    /* Overlay text that fades as user scrolls */
+    #hero-overlay {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 100vh;
+      margin-top: -100vh;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding-bottom: 4rem;
+      z-index: 10;
+    }
+    .hero-scroll-hint {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      opacity: 1;
+      transition: opacity 0.3s;
+    }
+    .hero-scroll-hint p {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+    }
+    .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, rgba(201,168,76,0.8), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.4; transform: scaleY(1); }
+      50%       { opacity: 1;   transform: scaleY(1.2); }
+    }
+
+    /* Hero title (top-left, visible on load) */
+    #hero-title {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      margin-top: -100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-left: 5vw;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .hero-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 1rem;
+    }
+    .hero-h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(3.5rem, 7vw, 7rem);
+      font-weight: 300;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      color: #fff;
+      max-width: 10ch;
+    }
+    .hero-h1 em {
+      font-style: italic;
+      color: var(--color-accent);
+    }
+
+    /* ─── HERO SCROLL PHASES ────────────────────────────────────── */
+    .hero-phase {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      margin-top: -100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-left: 5vw;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+    }
+    .hero-phase::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, rgba(10, 10, 10, 0.75) 0%, rgba(10, 10, 10, 0.45) 55%, transparent 100%);
+      pointer-events: none;
+      z-index: -1;
+    }
+    .hero-phase-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 1rem;
+    }
+    .hero-phase-title {
+      font-family: var(--font-heading);
+      font-size: clamp(3rem, 6vw, 6rem);
+      font-weight: 300;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: #fff;
+      max-width: 12ch;
+      margin-bottom: 1.5rem;
+    }
+    .hero-phase-title em {
+      font-style: italic;
+      color: var(--color-accent);
+    }
+    .hero-phase-sub {
+      font-size: clamp(0.875rem, 1.2vw, 1.0625rem);
+      color: rgba(232, 232, 232, 0.65);
+      line-height: 1.75;
+      max-width: 42ch;
+      margin-bottom: 2rem;
+    }
+    .hero-phase-cta {
+      display: inline-block;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.75rem 1.75rem;
+      border: 1px solid var(--color-accent);
+      color: var(--color-accent);
+      pointer-events: auto;
+      transition: background 0.3s, color 0.3s;
+      text-decoration: none;
+    }
+    .hero-phase-cta:hover {
+      background: var(--color-accent);
+      color: #000;
+    }
+    @media (max-width: 768px) {
+      .hero-phase-title { font-size: 2.75rem; }
+      .hero-phase-sub   { font-size: 0.875rem; max-width: 36ch; }
+    }
+
+    /* ─── FADE-IN ANIMATION (Intersection Observer) ────────────── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity var(--transition), transform var(--transition);
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .fade-in-delay-1 { transition-delay: 0.1s; }
+    .fade-in-delay-2 { transition-delay: 0.2s; }
+    .fade-in-delay-3 { transition-delay: 0.3s; }
+    .fade-in-delay-4 { transition-delay: 0.4s; }
+
+    /* ─── SECTION SHARED ───────────────────────────────────────── */
+    section { padding: 7rem 2rem; }
+    .container { max-width: var(--max-w); margin: 0 auto; }
+
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 1.25rem;
+    }
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: clamp(2.5rem, 4vw, 3.5rem);
+      font-weight: 300;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      color: var(--color-text);
+      margin-bottom: 1.5rem;
+    }
+    .section-title em { font-style: italic; color: var(--color-accent); }
+
+    .divider {
+      width: 48px;
+      height: 1px;
+      background: var(--color-accent);
+      margin-bottom: 1.5rem;
+    }
+
+    /* ─── ABOUT ────────────────────────────────────────────────── */
+    #about { background: var(--color-bg); }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+    .about-body {
+      font-size: 1.0625rem;
+      line-height: 1.8;
+      color: var(--color-muted);
+      margin-bottom: 1.5rem;
+    }
+    .about-body strong { color: var(--color-text); font-weight: 400; }
+
+    .about-stat-row {
+      display: flex;
+      gap: 3rem;
+      margin-top: 2.5rem;
+    }
+    .about-stat-num {
+      font-family: var(--font-heading);
+      font-size: 3rem;
+      font-weight: 300;
+      color: var(--color-accent);
+      line-height: 1;
+    }
+    .about-stat-label {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-top: 0.4rem;
+    }
+
+    /* Decorative visual */
+    .about-visual {
+      position: relative;
+      aspect-ratio: 4/5;
+      background: var(--color-surface);
+      overflow: hidden;
+    }
+    .about-visual::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 30% 30%, rgba(201,168,76,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 80% at 70% 80%, rgba(201,168,76,0.06) 0%, transparent 60%);
+    }
+    .about-visual-inner {
+      position: absolute;
+      inset: 2px;
+      border: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .about-visual-icon {
+      width: 120px;
+      opacity: 0.15;
+    }
+
+    /* ─── PRODUCTS ─────────────────────────────────────────────── */
+    #products { background: var(--color-surface); }
+
+    .products-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 3.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .products-link {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s;
+      padding-bottom: 2px;
+    }
+    .products-link:hover { border-color: var(--color-accent); }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+
+    .product-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      overflow: hidden;
+      transition: border-color 0.4s, transform 0.4s;
+      cursor: pointer;
+    }
+    .product-card:hover {
+      border-color: var(--color-accent-dim);
+      transform: translateY(-4px);
+    }
+
+    .product-thumb {
+      aspect-ratio: 3/4;
+      position: relative;
+      overflow: hidden;
+    }
+    /* CSS gradient placeholders per card */
+    .product-card:nth-child(1) .product-thumb {
+      background:
+        radial-gradient(ellipse 60% 80% at 50% 30%, #3a2a0e 0%, #1a1208 50%, #0d0a06 100%);
+    }
+    .product-card:nth-child(2) .product-thumb {
+      background:
+        radial-gradient(ellipse 60% 80% at 50% 40%, #1a1020 0%, #0e0b14 50%, #070509 100%);
+    }
+    .product-card:nth-child(3) .product-thumb {
+      background:
+        radial-gradient(ellipse 60% 80% at 50% 35%, #0e1a10 0%, #080d09 50%, #050806 100%);
+    }
+    .product-card:nth-child(4) .product-thumb {
+      background:
+        radial-gradient(ellipse 60% 80% at 50% 30%, #1a0e0e 0%, #0d0808 50%, #080505 100%);
+    }
+
+    /* Shine effect on hover */
+    .product-thumb::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(201,168,76,0.0) 40%, rgba(201,168,76,0.08) 60%, rgba(201,168,76,0.0) 70%);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .product-card:hover .product-thumb::after { opacity: 1; }
+
+    /* Guitar silhouette shape */
+    .product-thumb-shape {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .product-thumb-shape svg {
+      width: 55%;
+      height: 80%;
+      opacity: 0.25;
+      fill: var(--color-accent);
+    }
+
+    .product-info { padding: 1.25rem; }
+    .product-series {
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 0.4rem;
+    }
+    .product-name {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      font-weight: 400;
+      color: var(--color-text);
+      margin-bottom: 0.25rem;
+    }
+    .product-desc {
+      font-size: 0.8125rem;
+      color: var(--color-muted);
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+    .product-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .product-price {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: var(--color-accent);
+    }
+    .product-btn {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--color-border);
+      color: var(--color-muted);
+      transition: border-color 0.3s, color 0.3s;
+      cursor: pointer;
+      background: none;
+    }
+    .product-card:hover .product-btn {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+
+    /* ─── WHY US ───────────────────────────────────────────────── */
+    #why { background: var(--color-bg); }
+
+    .why-header { text-align: center; max-width: 600px; margin: 0 auto 4rem; }
+    .why-header .divider { margin: 0 auto 1.5rem; }
+
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+    .why-card {
+      background: var(--color-surface);
+      padding: 3rem 2.5rem;
+      border: 1px solid var(--color-border);
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.4s;
+    }
+    .why-card:hover { border-color: var(--color-accent-dim); }
+    .why-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+      transform: scaleX(0);
+      transition: transform 0.5s ease;
+    }
+    .why-card:hover::before { transform: scaleX(1); }
+
+    .why-icon {
+      width: 44px;
+      height: 44px;
+      margin-bottom: 1.75rem;
+      color: var(--color-accent);
+    }
+    .why-title {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: var(--color-text);
+      margin-bottom: 0.75rem;
+    }
+    .why-body {
+      font-size: 0.9375rem;
+      line-height: 1.7;
+      color: var(--color-muted);
+    }
+
+    /* ─── WHY STATS BAR ─────────────────────────────────────────── */
+    .why-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-top: 4rem;
+      padding: 2.5rem 2rem;
+      border-top: 1px solid var(--color-border);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .why-stat-item {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+    .why-stat-num {
+      font-family: var(--font-heading);
+      font-size: clamp(2rem, 4vw, 3.25rem);
+      font-weight: 300;
+      color: var(--color-accent);
+      line-height: 1;
+    }
+    .why-stat-unit {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+    }
+    .why-stat-sep {
+      font-family: var(--font-heading);
+      font-size: 2rem;
+      color: var(--color-border);
+      line-height: 1;
+      user-select: none;
+    }
+    @media (max-width: 600px) {
+      .why-stat-sep { display: none; }
+      .why-stats    { gap: 1.5rem; }
+    }
+
+    /* ─── THE PROCESS ───────────────────────────────────────────── */
+    #process { background: var(--color-surface); }
+    .process-header {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 5rem;
+    }
+    .process-header .divider { margin: 0 auto 1.5rem; }
+    .process-steps {
+      display: flex;
+      flex-direction: column;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .process-step {
+      display: grid;
+      grid-template-columns: 64px 1px 1fr;
+      gap: 0 2rem;
+      align-items: stretch;
+      padding: 0 0 3.5rem;
+    }
+    .process-step:last-child { padding-bottom: 0; }
+    .process-step-num {
+      font-family: var(--font-heading);
+      font-size: 3.5rem;
+      font-weight: 300;
+      color: var(--color-border);
+      line-height: 1;
+      padding-top: 0.1em;
+      text-align: right;
+      transition: color 0.4s;
+    }
+    .process-step:hover .process-step-num { color: var(--color-accent); }
+    .process-step-line {
+      width: 1px;
+      background: linear-gradient(to bottom, var(--color-accent), transparent);
+      margin: 0.2rem 0;
+      opacity: 0.3;
+    }
+    .process-step:last-child .process-step-line { display: none; }
+    .process-step-content { padding-top: 0.15rem; }
+    .process-step-title {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: var(--color-text);
+      margin-bottom: 0.6rem;
+      letter-spacing: 0.01em;
+    }
+    .process-step-body {
+      font-size: 0.9375rem;
+      line-height: 1.75;
+      color: var(--color-muted);
+    }
+    @media (max-width: 600px) {
+      .process-step { grid-template-columns: 44px 1px 1fr; gap: 0 1.25rem; }
+      .process-step-num { font-size: 2.5rem; }
+    }
+
+    /* ─── TONEWOODS ──────────────────────────────────────────────── */
+    #tonewoods { background: var(--color-bg); }
+    .tonewoods-header {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 4.5rem;
+    }
+    .tonewoods-header .divider { margin: 0 auto 1.5rem; }
+    .tonewoods-intro {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: var(--color-muted);
+    }
+    .tonewoods-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .tonewood-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      overflow: hidden;
+      transition: border-color 0.4s, transform 0.4s;
+    }
+    .tonewood-card:hover {
+      border-color: var(--color-accent-dim);
+      transform: translateY(-3px);
+    }
+    .tonewood-swatch { height: 100px; }
+    .tonewood-swatch--sitka    { background: linear-gradient(135deg, #e8d5a3 0%, #c4a96b 40%, #8b6914 100%); opacity: 0.55; }
+    .tonewood-swatch--mahogany { background: linear-gradient(135deg, #6b2d1a 0%, #8b3a20 40%, #4a1a10 100%); opacity: 0.8; }
+    .tonewood-swatch--rosewood { background: linear-gradient(135deg, #2d1a0a 0%, #4a2510 40%, #1a0d05 100%); opacity: 0.9; }
+    .tonewood-swatch--maple    { background: linear-gradient(135deg, #f5e6c0 0%, #d4b87a 40%, #a07840 100%); opacity: 0.5; }
+    .tonewood-swatch--ebony    { background: linear-gradient(135deg, #1a1410 0%, #2d2520 40%, #0d0a08 100%); opacity: 0.95; }
+    .tonewood-swatch--alder    { background: linear-gradient(135deg, #c4956a 0%, #8b5e35 40%, #5a3a1a 100%); opacity: 0.65; }
+    .tonewood-body { padding: 1.5rem; }
+    .tonewood-tag {
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 0.4rem;
+    }
+    .tonewood-name {
+      font-family: var(--font-heading);
+      font-size: 1.4rem;
+      font-weight: 400;
+      color: var(--color-text);
+      margin-bottom: 0.25rem;
+    }
+    .tonewood-region {
+      font-size: 0.75rem;
+      color: var(--color-muted);
+      letter-spacing: 0.05em;
+      margin-bottom: 0.6rem;
+    }
+    .tonewood-char {
+      font-size: 0.8125rem;
+      color: var(--color-accent);
+      font-style: italic;
+      margin-bottom: 0.75rem;
+      font-family: var(--font-heading);
+    }
+    .tonewood-desc {
+      font-size: 0.875rem;
+      line-height: 1.7;
+      color: var(--color-muted);
+    }
+    @media (max-width: 900px) {
+      .tonewoods-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .tonewoods-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ─── FEATURED INSTRUMENT ───────────────────────────────────── */
+    #featured {
+      background: var(--color-surface-2);
+      border-top: 1px solid var(--color-border);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .featured-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6rem;
+      align-items: start;
+    }
+    .featured-title {
+      font-family: var(--font-heading);
+      font-size: clamp(3rem, 5vw, 5rem);
+      font-weight: 300;
+      line-height: 1.05;
+      color: var(--color-text);
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.01em;
+    }
+    .featured-title em {
+      font-style: italic;
+      color: var(--color-accent);
+    }
+    .featured-copy {
+      font-size: 1.0625rem;
+      line-height: 1.8;
+      color: var(--color-muted);
+      margin-bottom: 2.5rem;
+    }
+    .featured-cta {
+      display: inline-block;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.75rem 2rem;
+      border: 1px solid var(--color-accent);
+      color: var(--color-accent);
+      transition: background 0.3s, color 0.3s;
+      text-decoration: none;
+    }
+    .featured-cta:hover { background: var(--color-accent); color: #000; }
+    .featured-specs {
+      padding: 2.5rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+    }
+    .featured-specs-label {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 1.5rem;
+    }
+    .featured-spec-list { list-style: none; }
+    .featured-spec-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.875rem;
+    }
+    .featured-spec-item:first-child { border-top: 1px solid var(--color-border); }
+    .featured-spec-item--price { border-bottom: none; padding-bottom: 0; }
+    .featured-spec-key { color: var(--color-muted); white-space: nowrap; flex-shrink: 0; }
+    .featured-spec-val { color: var(--color-text); text-align: right; }
+    .featured-spec-price {
+      font-family: var(--font-heading);
+      font-size: 1.75rem;
+      font-weight: 300;
+      color: var(--color-accent);
+      line-height: 1;
+    }
+    @media (max-width: 900px) {
+      .featured-grid { grid-template-columns: 1fr; gap: 3rem; }
+    }
+
+    /* ─── TESTIMONIALS ─────────────────────────────────────────── */
+    #testimonials { background: var(--color-surface); }
+
+    .testimonials-header { text-align: center; margin-bottom: 4rem; }
+    .testimonials-header .divider { margin: 0 auto 1.5rem; }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .testimonial-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      padding: 2.5rem;
+      position: relative;
+      transition: border-color 0.4s;
+    }
+    .testimonial-card:hover { border-color: var(--color-accent-dim); }
+
+    .testimonial-quote-icon {
+      font-family: var(--font-heading);
+      font-size: 5rem;
+      line-height: 0.5;
+      color: var(--color-accent);
+      opacity: 0.3;
+      margin-bottom: 1.25rem;
+      user-select: none;
+    }
+    .testimonial-text {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      font-style: italic;
+      line-height: 1.7;
+      color: var(--color-text);
+      margin-bottom: 2rem;
+    }
+    .testimonial-stars {
+      color: var(--color-accent);
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      margin-bottom: 1rem;
+    }
+    .testimonial-author {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--color-text);
+    }
+    .testimonial-role {
+      font-size: 0.8125rem;
+      color: var(--color-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* ─── NEWSLETTER ───────────────────────────────────────────── */
+    #newsletter {
+      background: var(--color-bg);
+      padding: 6rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    #newsletter::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 800px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(201,168,76,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .newsletter-eyebrow { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--color-accent); margin-bottom: 1rem; }
+    .newsletter-title {
+      font-family: var(--font-heading);
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 300;
+      color: var(--color-text);
+      margin-bottom: 0.75rem;
+    }
+    .newsletter-sub {
+      font-size: 1rem;
+      color: var(--color-muted);
+      max-width: 480px;
+      margin: 0 auto 2.5rem;
+    }
+
+    .newsletter-form {
+      display: flex;
+      max-width: 460px;
+      margin: 0 auto;
+      gap: 0;
+    }
+    .newsletter-input {
+      flex: 1;
+      padding: 0.875rem 1.25rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-right: none;
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .newsletter-input::placeholder { color: var(--color-muted); }
+    .newsletter-input:focus { border-color: var(--color-accent-dim); }
+
+    .newsletter-submit {
+      padding: 0.875rem 1.75rem;
+      background: var(--color-accent);
+      color: #000;
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      border: 1px solid var(--color-accent);
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      white-space: nowrap;
+    }
+    .newsletter-submit:hover {
+      background: var(--color-accent-dim);
+      border-color: var(--color-accent-dim);
+    }
+
+    /* ─── FOOTER ───────────────────────────────────────────────── */
+    footer {
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-border);
+      padding: 4rem 2rem 2rem;
+    }
+    .footer-grid {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      padding-bottom: 3rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .footer-brand-name {
+      font-family: var(--font-heading);
+      font-size: 1.75rem;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: var(--color-text);
+      margin-bottom: 0.75rem;
+    }
+    .footer-brand-name span { color: var(--color-accent); }
+    .footer-brand-tagline {
+      font-size: 0.875rem;
+      color: var(--color-muted);
+      line-height: 1.6;
+      max-width: 260px;
+      margin-bottom: 1.75rem;
+    }
+    .footer-socials {
+      display: flex;
+      gap: 1rem;
+    }
+    .footer-social-link {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-muted);
+      transition: border-color 0.3s, color 0.3s;
+    }
+    .footer-social-link:hover {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+    .footer-social-link svg { width: 15px; height: 15px; fill: currentColor; }
+
+    .footer-col-title {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 1.25rem;
+    }
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+    }
+    .footer-links a {
+      font-size: 0.875rem;
+      color: var(--color-muted);
+      transition: color 0.3s;
+    }
+    .footer-links a:hover { color: var(--color-text); }
+
+    .footer-bottom {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding-top: 1.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .footer-copy { font-size: 0.8125rem; color: #555; }
+    .footer-legal { display: flex; gap: 1.75rem; }
+    .footer-legal a { font-size: 0.8125rem; color: #555; transition: color 0.3s; }
+    .footer-legal a:hover { color: var(--color-muted); }
+
+    /* ─── RESPONSIVE ───────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+      .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+      .about-visual { display: none; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      section { padding: 5rem 1.25rem; }
+      .nav-links, .nav-cta { display: none; }
+      .nav-hamburger { display: flex; }
+      .why-grid { grid-template-columns: 1fr; gap: 1px; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .products-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .newsletter-form { flex-direction: column; }
+      .newsletter-input { border-right: 1px solid var(--color-border); }
+      .newsletter-input:focus { border-color: var(--color-accent-dim); }
+      .footer-bottom { flex-direction: column; align-items: flex-start; }
+      .hero-h1 { font-size: 3rem; }
+      .products-header { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (max-width: 480px) {
+      .about-stat-row { gap: 2rem; flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOADER -->
+  <div id="loader">
+    <p id="loader-label">Loading</p>
+    <div id="loader-track"><div id="loader-fill"></div></div>
+  </div>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <a href="#" class="nav-logo">Res<span>o</span>nance</a>
+    <ul class="nav-links">
+      <li><a href="#about">Story</a></li>
+      <li><a href="#process">Process</a></li>
+      <li><a href="#products">Instruments</a></li>
+      <li><a href="#tonewoods">Woods</a></li>
+      <li><a href="#testimonials">Artists</a></li>
+    </ul>
+    <a href="#products" class="nav-cta">Shop Now</a>
+    <button class="nav-hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- HERO — SCROLL-DRIVEN CANVAS -->
+  <section id="scroll-container">
+    <canvas id="hero-canvas"></canvas>
+
+    <!-- Title overlay -->
+    <div id="hero-title">
+      <p class="hero-eyebrow">Est. 1987 · Handcrafted</p>
+      <h1 class="hero-h1">Sound <em>Begins</em> Here</h1>
+    </div>
+
+    <!-- Scroll hint overlay -->
+    <div id="hero-overlay">
+      <div class="hero-scroll-hint" id="scroll-hint">
+        <p>Scroll to Explore</p>
+        <div class="scroll-line"></div>
+      </div>
+    </div>
+
+    <!-- Hero Phase 2 -->
+    <div class="hero-phase" id="hero-phase-2">
+      <p class="hero-phase-eyebrow">Craftsmanship</p>
+      <h2 class="hero-phase-title">Precision in<br><em>Every Detail</em></h2>
+      <p class="hero-phase-sub">Each joint measured to the tenth of a millimetre.<br>Each curve shaped by hands that know no shortcut.</p>
+    </div>
+
+    <!-- Hero Phase 3 -->
+    <div class="hero-phase" id="hero-phase-3">
+      <p class="hero-phase-eyebrow">Materials</p>
+      <h2 class="hero-phase-title">Tonewoods<br><em>Selected by Hand</em></h2>
+      <p class="hero-phase-sub">Only the finest sustainably sourced woods pass our luthiers' ears.<br>Tapped. Flexed. Listened to. Then chosen.</p>
+    </div>
+
+    <!-- Hero Phase 4 -->
+    <div class="hero-phase" id="hero-phase-4">
+      <p class="hero-phase-eyebrow">Your Instrument</p>
+      <h2 class="hero-phase-title">Your Sound.<br><em>Your Story.</em></h2>
+      <p class="hero-phase-sub">Every Resonance guitar is built once — for you.</p>
+      <a href="#about" class="hero-phase-cta">Explore the Collection</a>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="container">
+      <div class="about-grid">
+        <div>
+          <p class="section-label fade-in">Our Story</p>
+          <h2 class="section-title fade-in fade-in-delay-1">Crafted by Hand.<br><em>Played by Soul.</em></h2>
+          <div class="divider fade-in fade-in-delay-1"></div>
+          <p class="about-body fade-in fade-in-delay-2">
+            Every Resonance guitar begins as a single piece of <strong>sustainably sourced tonewoods</strong> — selected by hand, dried for years, and shaped by luthiers who have devoted their lives to the art of sound.
+          </p>
+          <p class="about-body fade-in fade-in-delay-2">
+            We believe that an instrument is more than wood and wire. It is the <strong>bridge between silence and music</strong>, between imagination and expression. Since 1987, we have built guitars for artists who refuse to compromise.
+          </p>
+          <div class="about-stat-row fade-in fade-in-delay-3">
+            <div>
+              <div class="about-stat-num">37</div>
+              <div class="about-stat-label">Years of Craft</div>
+            </div>
+            <div>
+              <div class="about-stat-num">4,200+</div>
+              <div class="about-stat-label">Instruments Built</div>
+            </div>
+            <div>
+              <div class="about-stat-num">62</div>
+              <div class="about-stat-label">Countries Played In</div>
+            </div>
+          </div>
+        </div>
+        <div class="about-visual fade-in fade-in-delay-2">
+          <div class="about-visual-inner">
+            <!-- Guitar silhouette SVG -->
+            <svg class="about-visual-icon" viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+              <path d="M48 0 h4 v60 l6 4 c14 8 22 22 22 38 a30 30 0 0 1-60 0 c0-16 8-30 22-38 l6-4 V0 z M50 110 m-18 0 a18 18 0 1 0 36 0 a18 18 0 1 0-36 0"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE PROCESS -->
+  <section id="process">
+    <div class="container">
+      <div class="process-header">
+        <p class="section-label fade-in">How It's Made</p>
+        <h2 class="section-title fade-in fade-in-delay-1">Five Stages of<br><em>Pure Craft</em></h2>
+        <div class="divider fade-in fade-in-delay-1"></div>
+      </div>
+      <div class="process-steps">
+
+        <div class="process-step fade-in">
+          <div class="process-step-num">01</div>
+          <div class="process-step-line" aria-hidden="true"></div>
+          <div class="process-step-content">
+            <h3 class="process-step-title">Wood Selection</h3>
+            <p class="process-step-body">Our luthiers travel to certified forests and mills, selecting each plank by tap tone, grain density, and moisture content. Only the top 3% of tonewood stock makes the cut.</p>
+          </div>
+        </div>
+
+        <div class="process-step fade-in fade-in-delay-1">
+          <div class="process-step-num">02</div>
+          <div class="process-step-line" aria-hidden="true"></div>
+          <div class="process-step-content">
+            <h3 class="process-step-title">Body Shaping</h3>
+            <p class="process-step-body">Templates passed down through generations guide the first cuts. Each body contour is refined by hand planes and spokeshaves before any power tool approaches the wood.</p>
+          </div>
+        </div>
+
+        <div class="process-step fade-in fade-in-delay-2">
+          <div class="process-step-num">03</div>
+          <div class="process-step-line" aria-hidden="true"></div>
+          <div class="process-step-content">
+            <h3 class="process-step-title">Neck Crafting</h3>
+            <p class="process-step-body">The neck is the soul of playability. Carved from a single piece of hard maple or mahogany, each profile is shaped to the hand — then voiced by testing string tension and resonance transfer.</p>
+          </div>
+        </div>
+
+        <div class="process-step fade-in fade-in-delay-3">
+          <div class="process-step-num">04</div>
+          <div class="process-step-line" aria-hidden="true"></div>
+          <div class="process-step-content">
+            <h3 class="process-step-title">Assembly &amp; Binding</h3>
+            <p class="process-step-body">Body, neck, and hardware are joined with hide glue and held for 48 hours. Binding channels are cut by hand. No CNC. Every mitre joint is fitted until invisible.</p>
+          </div>
+        </div>
+
+        <div class="process-step fade-in fade-in-delay-4">
+          <div class="process-step-num">05</div>
+          <div class="process-step-content">
+            <h3 class="process-step-title">Final Setup &amp; Tuning</h3>
+            <p class="process-step-body">After finish curing, every guitar receives a complete setup: fret levelling, nut slotting, intonation, and action optimisation. Each instrument is played for a minimum of eight hours before shipping.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCTS -->
+  <section id="products">
+    <div class="container">
+      <div class="products-header">
+        <div>
+          <p class="section-label fade-in">Our Collection</p>
+          <h2 class="section-title fade-in fade-in-delay-1">Featured<br><em>Instruments</em></h2>
+        </div>
+        <a href="#" class="products-link fade-in">View All →</a>
+      </div>
+      <div class="products-grid">
+
+        <div class="product-card fade-in">
+          <div class="product-thumb">
+            <div class="product-thumb-shape">
+              <svg viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg"><path d="M48 0 h4 v60 l6 4 c14 8 22 22 22 38 a30 30 0 0 1-60 0 c0-16 8-30 22-38 l6-4 V0 z"/></svg>
+            </div>
+          </div>
+          <div class="product-info">
+            <p class="product-series">Signature Series</p>
+            <h3 class="product-name">The Obsidian</h3>
+            <p class="product-desc">Brazilian rosewood back & sides. Engelmann spruce top. Ebony fingerboard.</p>
+            <div class="product-footer">
+              <span class="product-price">$4,850</span>
+              <button class="product-btn">Explore</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card fade-in fade-in-delay-1">
+          <div class="product-thumb">
+            <div class="product-thumb-shape">
+              <svg viewBox="0 0 100 180" xmlns="http://www.w3.org/2000/svg"><path d="M35 0 h30 v8 c8 2 14 6 14 14 v6 c0 8-6 14-14 16 v4 l8 8 v6 l-8 8 v4 c8 2 14 8 14 16 v6 c0 8-6 12-14 14 v10 c0 6-4 10-10 10 h-20 c-6 0-10-4-10-10 v-10 c-8-2-14-6-14-14 v-6 c0-8 6-14 14-16 v-4 l-8-8 v-6 l8-8 v-4 c-8-2-14-8-14-16 v-6 c0-8 6-12 14-14 v-8 z"/></svg>
+            </div>
+          </div>
+          <div class="product-info">
+            <p class="product-series">Studio Series</p>
+            <h3 class="product-name">Nocturne Bass</h3>
+            <p class="product-desc">5-string active bass. Swamp ash body. Birdseye maple neck.</p>
+            <div class="product-footer">
+              <span class="product-price">$3,200</span>
+              <button class="product-btn">Explore</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card fade-in fade-in-delay-2">
+          <div class="product-thumb">
+            <div class="product-thumb-shape">
+              <svg viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg"><path d="M48 0 h4 v60 l6 4 c14 8 22 22 22 38 a30 30 0 0 1-60 0 c0-16 8-30 22-38 l6-4 V0 z"/></svg>
+            </div>
+          </div>
+          <div class="product-info">
+            <p class="product-series">Heritage Series</p>
+            <h3 class="product-name">Ember Acoustic</h3>
+            <p class="product-desc">Mahogany & cedar. Understated warmth with incredible projection.</p>
+            <div class="product-footer">
+              <span class="product-price">$2,750</span>
+              <button class="product-btn">Explore</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card fade-in fade-in-delay-3">
+          <div class="product-thumb">
+            <div class="product-thumb-shape">
+              <svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg"><path d="M40 0 h40 v20 h10 v10 h-10 v100 c16 6 26 20 26 36 a36 36 0 0 1-72 0 c0-16 10-30 26-36 v-100 h-10 v-10 h10 v-20 z"/></svg>
+            </div>
+          </div>
+          <div class="product-info">
+            <p class="product-series">Limited Edition</p>
+            <h3 class="product-name">Aurelius Archtop</h3>
+            <p class="product-desc">Hand-carved spruce top. Flame maple back. Jazz-voiced dual humbuckers.</p>
+            <div class="product-footer">
+              <span class="product-price">$7,400</span>
+              <button class="product-btn">Explore</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY US -->
+  <section id="why">
+    <div class="container">
+      <div class="why-header">
+        <p class="section-label fade-in">Why Resonance</p>
+        <h2 class="section-title fade-in fade-in-delay-1">Built on Three<br><em>Unbreakable Promises</em></h2>
+        <div class="divider fade-in fade-in-delay-1"></div>
+      </div>
+      <div class="why-grid">
+
+        <div class="why-card fade-in">
+          <svg class="why-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 4 C13 4 6 11 6 20 C6 26 9 31 14 34 L14 38 C14 39.1 14.9 40 16 40 L28 40 C29.1 40 30 39.1 30 38 L30 34 C35 31 38 26 38 20 C38 11 31 4 22 4 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M16 40 L28 40" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M17 36 L27 36" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M22 12 L24 18 L30 18 L25 22 L27 28 L22 24 L17 28 L19 22 L14 18 L20 18 Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+          </svg>
+          <h3 class="why-title">Master Craftsmanship</h3>
+          <p class="why-body">Each instrument passes through the hands of a single luthier from start to finish. No assembly lines. No shortcuts. Every curve, every joint, every fret — placed with intention and decades of knowledge.</p>
+        </div>
+
+        <div class="why-card fade-in fade-in-delay-1">
+          <svg class="why-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 32 Q14 20 22 22 Q30 24 36 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="22" cy="22" r="3" fill="currentColor" opacity="0.5"/>
+            <path d="M6 38 L38 38" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M6 6 L6 38" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M36 12 L38 8 L42 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <h3 class="why-title">Exceptional Tone</h3>
+          <p class="why-body">Tonewood selection is an art. Our master luthiers tap, flex, and listen to every plank before a single cut is made — ensuring the instrument resonates at its natural frequency for pure, balanced projection.</p>
+        </div>
+
+        <div class="why-card fade-in fade-in-delay-2">
+          <svg class="why-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 6 L26 14 L36 15.5 L29 22 L30.5 32 L22 28 L13.5 32 L15 22 L8 15.5 L18 14 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M14 38 L30 38" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M18 38 L18 34 M26 38 L26 34" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          <h3 class="why-title">Lifetime Warranty</h3>
+          <p class="why-body">We stand behind every instrument we build — forever. Our lifetime warranty covers all structural defects. Because a Resonance guitar is not just a purchase; it is a relationship that spans generations.</p>
+        </div>
+
+      </div>
+
+      <!-- Stats bar -->
+      <div class="why-stats fade-in">
+        <div class="why-stat-item">
+          <span class="why-stat-num">37</span>
+          <span class="why-stat-unit">Years</span>
+        </div>
+        <div class="why-stat-sep" aria-hidden="true">·</div>
+        <div class="why-stat-item">
+          <span class="why-stat-num">4,200+</span>
+          <span class="why-stat-unit">Instruments</span>
+        </div>
+        <div class="why-stat-sep" aria-hidden="true">·</div>
+        <div class="why-stat-item">
+          <span class="why-stat-num">62</span>
+          <span class="why-stat-unit">Countries</span>
+        </div>
+        <div class="why-stat-sep" aria-hidden="true">·</div>
+        <div class="why-stat-item">
+          <span class="why-stat-num">0</span>
+          <span class="why-stat-unit">Compromises</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TONEWOODS -->
+  <section id="tonewoods">
+    <div class="container">
+      <div class="tonewoods-header">
+        <p class="section-label fade-in">The Materials</p>
+        <h2 class="section-title fade-in fade-in-delay-1">Woods That<br><em>Shape the Sound</em></h2>
+        <div class="divider fade-in fade-in-delay-1"></div>
+        <p class="tonewoods-intro fade-in fade-in-delay-2">Every species of wood speaks a different tonal language. We work with six primary tonewoods — each chosen for its acoustic character, its beauty, and the story it carries from forest to fingerboard.</p>
+      </div>
+      <div class="tonewoods-grid">
+
+        <div class="tonewood-card fade-in">
+          <div class="tonewood-swatch tonewood-swatch--sitka"></div>
+          <div class="tonewood-body">
+            <div class="tonewood-tag">Top</div>
+            <h3 class="tonewood-name">Sitka Spruce</h3>
+            <p class="tonewood-region">Pacific Northwest, North America</p>
+            <p class="tonewood-char">Bright · Clear · Dynamic Range</p>
+            <p class="tonewood-desc">The benchmark tonewood for acoustic tops. Excellent stiffness-to-weight ratio produces articulate highs and powerful projection across all playing styles.</p>
+          </div>
+        </div>
+
+        <div class="tonewood-card fade-in fade-in-delay-1">
+          <div class="tonewood-swatch tonewood-swatch--mahogany"></div>
+          <div class="tonewood-body">
+            <div class="tonewood-tag">Back &amp; Sides</div>
+            <h3 class="tonewood-name">Mahogany</h3>
+            <p class="tonewood-region">Central America &amp; Africa</p>
+            <p class="tonewood-char">Warm · Focused · Rich Mids</p>
+            <p class="tonewood-desc">The voice of the blues and folk tradition. Mahogany reinforces the fundamental notes with a warm, punchy midrange that records beautifully.</p>
+          </div>
+        </div>
+
+        <div class="tonewood-card fade-in fade-in-delay-2">
+          <div class="tonewood-swatch tonewood-swatch--rosewood"></div>
+          <div class="tonewood-body">
+            <div class="tonewood-tag">Fretboard</div>
+            <h3 class="tonewood-name">Indian Rosewood</h3>
+            <p class="tonewood-region">Southern India</p>
+            <p class="tonewood-char">Complex · Lush · Extended Sustain</p>
+            <p class="tonewood-desc">Dense and oily, rosewood fretboards add complexity to the upper harmonics and a silky playing feel that develops further with age.</p>
+          </div>
+        </div>
+
+        <div class="tonewood-card fade-in">
+          <div class="tonewood-swatch tonewood-swatch--maple"></div>
+          <div class="tonewood-body">
+            <div class="tonewood-tag">Neck</div>
+            <h3 class="tonewood-name">Hard Maple</h3>
+            <p class="tonewood-region">North America &amp; Canada</p>
+            <p class="tonewood-char">Bright · Tight · High Definition</p>
+            <p class="tonewood-desc">Extremely stable and hard-wearing, maple necks transmit string energy efficiently with a snappy attack that cuts through any mix.</p>
+          </div>
+        </div>
+
+        <div class="tonewood-card fade-in fade-in-delay-1">
+          <div class="tonewood-swatch tonewood-swatch--ebony"></div>
+          <div class="tonewood-body">
+            <div class="tonewood-tag">Fretboard Alt.</div>
+            <h3 class="tonewood-name">Gaboon Ebony</h3>
+            <p class="tonewood-region">West &amp; Central Africa</p>
+            <p class="tonewood-char">Articulate · Fast · Glassy</p>
+            <p class="tonewood-desc">The finest fretboard material available. Exceptional hardness creates a fast, smooth surface. The glassy tone adds brilliant note definition and projection.</p>
+          </div>
+        </div>
+
+        <div class="tonewood-card fade-in fade-in-delay-2">
+          <div class="tonewood-swatch tonewood-swatch--alder"></div>
+          <div class="tonewood-body">
+            <div class="tonewood-tag">Body</div>
+            <h3 class="tonewood-name">Alder</h3>
+            <p class="tonewood-region">Pacific Northwest, North America</p>
+            <p class="tonewood-char">Balanced · Full · Even Response</p>
+            <p class="tonewood-desc">The classic electric guitar body wood. Alder's even frequency response and light weight make it the ideal canvas for any pickup configuration.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED INSTRUMENT -->
+  <section id="featured">
+    <div class="container">
+      <div class="featured-grid">
+        <div class="featured-info">
+          <p class="section-label fade-in">Signature Piece</p>
+          <h2 class="featured-title fade-in fade-in-delay-1">The Artisan<br><em>Series</em></h2>
+          <div class="divider fade-in fade-in-delay-1"></div>
+          <p class="featured-copy fade-in fade-in-delay-2">Our most uncompromising guitar. Every specification chosen for maximum acoustic performance and playing comfort. Built entirely by a single luthier over twelve weeks, the Artisan Series is a declaration — that there is always a higher standard.</p>
+          <a href="#products" class="featured-cta fade-in fade-in-delay-3">View the Series</a>
+        </div>
+        <div class="featured-specs fade-in fade-in-delay-2">
+          <p class="featured-specs-label">Specifications</p>
+          <ul class="featured-spec-list">
+            <li class="featured-spec-item">
+              <span class="featured-spec-key">Top</span>
+              <span class="featured-spec-val">Engelmann Spruce, AAA Grade</span>
+            </li>
+            <li class="featured-spec-item">
+              <span class="featured-spec-key">Back &amp; Sides</span>
+              <span class="featured-spec-val">Brazilian Rosewood</span>
+            </li>
+            <li class="featured-spec-item">
+              <span class="featured-spec-key">Neck</span>
+              <span class="featured-spec-val">One-piece Honduran Mahogany</span>
+            </li>
+            <li class="featured-spec-item">
+              <span class="featured-spec-key">Fretboard</span>
+              <span class="featured-spec-val">Gaboon Ebony, 20 Frets</span>
+            </li>
+            <li class="featured-spec-item">
+              <span class="featured-spec-key">Nut &amp; Saddle</span>
+              <span class="featured-spec-val">Fossilised Ivory</span>
+            </li>
+            <li class="featured-spec-item">
+              <span class="featured-spec-key">Tuning Machines</span>
+              <span class="featured-spec-val">Gotoh 510, Gold</span>
+            </li>
+            <li class="featured-spec-item">
+              <span class="featured-spec-key">Finish</span>
+              <span class="featured-spec-val">Hand-rubbed Nitrocellulose Lacquer</span>
+            </li>
+            <li class="featured-spec-item">
+              <span class="featured-spec-key">Build Time</span>
+              <span class="featured-spec-val">12 Weeks, Single Luthier</span>
+            </li>
+            <li class="featured-spec-item featured-spec-item--price">
+              <span class="featured-spec-key">Starting Price</span>
+              <span class="featured-spec-val featured-spec-price">$8,900</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section id="testimonials">
+    <div class="container">
+      <div class="testimonials-header">
+        <p class="section-label fade-in">Artist Voices</p>
+        <h2 class="section-title fade-in fade-in-delay-1">What Musicians<br><em>Are Saying</em></h2>
+        <div class="divider fade-in fade-in-delay-1"></div>
+      </div>
+      <div class="testimonials-grid">
+
+        <div class="testimonial-card fade-in">
+          <div class="testimonial-quote-icon">&ldquo;</div>
+          <p class="testimonial-text">The Obsidian has completely transformed my live sound. There is a warmth and sustain I have never found in any other instrument — at any price point.</p>
+          <div class="testimonial-stars">★ ★ ★ ★ ★</div>
+          <div class="testimonial-author">Marcus de la Vega</div>
+          <div class="testimonial-role">Solo Guitarist · Los Angeles, CA</div>
+        </div>
+
+        <div class="testimonial-card fade-in fade-in-delay-1">
+          <div class="testimonial-quote-icon">&ldquo;</div>
+          <p class="testimonial-text">I have owned guitars three times the price that do not come close. The craftsmanship, the feel, the way it responds to the lightest touch — it is extraordinary.</p>
+          <div class="testimonial-stars">★ ★ ★ ★ ★</div>
+          <div class="testimonial-author">Yuki Tanaka</div>
+          <div class="testimonial-role">Session Musician · Tokyo, Japan</div>
+        </div>
+
+        <div class="testimonial-card fade-in fade-in-delay-2">
+          <div class="testimonial-quote-icon">&ldquo;</div>
+          <p class="testimonial-text">When I picked up the Ember Acoustic for the first time, I played for four hours without stopping. That has never happened before. It simply speaks to you.</p>
+          <div class="testimonial-stars">★ ★ ★ ★ ★</div>
+          <div class="testimonial-author">Isabelle Moreau</div>
+          <div class="testimonial-role">Singer-Songwriter · Paris, France</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER -->
+  <section id="newsletter">
+    <div class="container">
+      <p class="newsletter-eyebrow fade-in">Stay in Tune</p>
+      <h2 class="newsletter-title fade-in fade-in-delay-1">New Instruments.<br>Stories of Craft.</h2>
+      <p class="newsletter-sub fade-in fade-in-delay-2">Join our community of musicians and receive exclusive previews, luthier journals, and limited edition announcements.</p>
+      <form class="newsletter-form fade-in fade-in-delay-3" onsubmit="return false;">
+        <input type="email" class="newsletter-input" placeholder="Your email address" aria-label="Email address">
+        <button type="submit" class="newsletter-submit">Subscribe</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand-name">Res<span>o</span>nance</div>
+        <p class="footer-brand-tagline">Handcrafted guitars built for artists who refuse to compromise on sound.</p>
+        <div class="footer-socials">
+          <!-- Instagram -->
+          <a href="#" class="footer-social-link" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+          </a>
+          <!-- YouTube -->
+          <a href="#" class="footer-social-link" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+          </a>
+          <!-- Facebook -->
+          <a href="#" class="footer-social-link" aria-label="Facebook">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          </a>
+          <!-- Spotify -->
+          <a href="#" class="footer-social-link" aria-label="Spotify">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <p class="footer-col-title">Instruments</p>
+        <ul class="footer-links">
+          <li><a href="#">Acoustic Guitars</a></li>
+          <li><a href="#">Electric Guitars</a></li>
+          <li><a href="#">Bass Guitars</a></li>
+          <li><a href="#">Archtop Series</a></li>
+          <li><a href="#">Limited Editions</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <p class="footer-col-title">Company</p>
+        <ul class="footer-links">
+          <li><a href="#">Our Story</a></li>
+          <li><a href="#">Luthiers</a></li>
+          <li><a href="#">Atelier Tour</a></li>
+          <li><a href="#">Sustainability</a></li>
+          <li><a href="#">Press</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <p class="footer-col-title">Support</p>
+        <ul class="footer-links">
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Warranty</a></li>
+          <li><a href="#">Care Guide</a></li>
+          <li><a href="#">Dealers</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2026 Resonance Guitars. All rights reserved.</p>
+      <div class="footer-legal">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Cookie Settings</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─── JAVASCRIPT ───────────────────────────────────────────── -->
+  <script>
+    /* ── CANVAS SCROLL ANIMATION ──────────────────────────────── */
+    const FRAME_COUNT = 124;
+    const FRAME_PATH  = n => `Guitar/frame_${String(n).padStart(4, '0')}.jpg`;
+
+    const canvas    = document.getElementById('hero-canvas');
+    const ctx       = canvas.getContext('2d');
+    const scrollSec = document.getElementById('scroll-container');
+    const loader    = document.getElementById('loader');
+    const loaderFill = document.getElementById('loader-fill');
+    const scrollHint = document.getElementById('scroll-hint');
+    const heroTitle  = document.getElementById('hero-title');
+
+    let frames      = new Array(FRAME_COUNT);
+    let loadedCount = 0;
+    let currentFrame = 0;
+    let rafPending  = false;
+
+    function resizeCanvas() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      drawFrame(currentFrame);
+    }
+
+    function drawFrame(index) {
+      const img = frames[index];
+      if (!img || !img.complete || !img.naturalWidth) return;
+      const cw = canvas.width,  ch = canvas.height;
+      const iw = img.naturalWidth, ih = img.naturalHeight;
+      const scale = Math.max(cw / iw, ch / ih);
+      const dw = iw * scale, dh = ih * scale;
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+    }
+
+    const heroPhases = [
+      { el: null, start: 0.22, end: 0.50 },
+      { el: null, start: 0.53, end: 0.80 },
+      { el: null, start: 0.83, end: 1.00 },
+    ];
+
+    function initHeroPhases() {
+      heroPhases[0].el = document.getElementById('hero-phase-2');
+      heroPhases[1].el = document.getElementById('hero-phase-3');
+      heroPhases[2].el = document.getElementById('hero-phase-4');
+    }
+
+    function updateHeroPhases(p) {
+      const fadeWidth = 0.06;
+      heroPhases.forEach(({ el, start, end }) => {
+        if (!el) return;
+        let opacity = 0;
+        if (p >= start && p <= end) {
+          const fadeIn  = Math.min((p - start) / fadeWidth, 1);
+          const fadeOut = (p > end - fadeWidth) ? Math.max((end - p) / fadeWidth, 0) : 1;
+          opacity = fadeIn * fadeOut;
+        }
+        el.style.opacity = opacity;
+      });
+    }
+
+    function onScroll() {
+      // First-viewport progress — fade hint and title fast
+      const firstVH = Math.min(window.scrollY / window.innerHeight, 1);
+      if (scrollHint) scrollHint.style.opacity = 1 - firstVH * 3;
+      if (heroTitle)  heroTitle.style.opacity   = 1 - firstVH * 5;
+
+      // Full-range progress across entire 500vh — for phases and canvas
+      const maxScroll      = scrollSec.scrollHeight - window.innerHeight;
+      const scrollProgress = Math.min(Math.max(window.scrollY / maxScroll, 0), 1);
+
+      updateHeroPhases(scrollProgress);
+
+      const idx = Math.round(scrollProgress * (FRAME_COUNT - 1));
+      if (idx !== currentFrame) {
+        currentFrame = idx;
+        if (!rafPending) {
+          rafPending = true;
+          requestAnimationFrame(() => { drawFrame(currentFrame); rafPending = false; });
+        }
+      }
+    }
+
+    function preload() {
+      for (let i = 0; i < FRAME_COUNT; i++) {
+        const img = new Image();
+        img.src = FRAME_PATH(i + 1);
+        img.onload = () => {
+          loadedCount++;
+          loaderFill.style.width = (loadedCount / FRAME_COUNT * 100) + '%';
+          if (i === 0) drawFrame(0);
+          if (loadedCount === FRAME_COUNT) onAllLoaded();
+        };
+        img.onerror = () => {
+          loadedCount++;
+          loaderFill.style.width = (loadedCount / FRAME_COUNT * 100) + '%';
+          if (loadedCount === FRAME_COUNT) onAllLoaded();
+        };
+        frames[i] = img;
+      }
+    }
+
+    function onAllLoaded() {
+      loader.classList.add('hidden');
+      window.addEventListener('scroll', onScroll, { passive: true });
+      drawFrame(0);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    initHeroPhases();
+    preload();
+
+    /* ── NAV SCROLL BEHAVIOR ─────────────────────────────────── */
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 80);
+    }, { passive: true });
+
+    /* ── INTERSECTION OBSERVER (fade-in) ─────────────────────── */
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    /* ── NEWSLETTER FORM ─────────────────────────────────────── */
+    document.querySelector('.newsletter-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const input  = e.target.querySelector('.newsletter-input');
+      const btn    = e.target.querySelector('.newsletter-submit');
+      if (!input.value || !input.value.includes('@')) {
+        input.style.borderColor = '#c0392b';
+        setTimeout(() => input.style.borderColor = '', 1500);
+        return;
+      }
+      btn.textContent = 'Thank You ✓';
+      btn.style.background = '#2d5a27';
+      btn.style.borderColor = '#2d5a27';
+      input.value = '';
+      setTimeout(() => {
+        btn.textContent = 'Subscribe';
+        btn.style.background = '';
+        btn.style.borderColor = '';
+      }, 3000);
+    });
+  </script>
+
+</body>
+</html>
