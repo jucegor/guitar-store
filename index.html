@@ -159,7 +159,7 @@
     }
 
     /* ─── HERO SCROLL SECTION ──────────────────────────────────── */
-    #scroll-container { height: 500vh; position: relative; }
+    #scroll-container { height: 250vh; position: relative; }
 
     #hero-canvas {
       position: sticky;
@@ -1164,7 +1164,7 @@
       :root { --section-py: 4rem; --section-px: 1.25rem; }
 
       /* Scroll container — shorter on mobile for better UX */
-      #scroll-container { height: 320vh; }
+      #scroll-container { height: 200vh; }
 
       /* Nav */
       .nav-links, .nav-cta { display: none; }
@@ -1909,7 +1909,7 @@
       if (scrollHint) scrollHint.style.opacity = 1 - firstVH * 3;
       if (heroTitle)  heroTitle.style.opacity   = 1 - firstVH * 5;
 
-      // Full-range progress across entire 500vh — for phases and canvas
+      // Full-range progress across the scroll section — for phases and canvas
       const maxScroll      = scrollSec.scrollHeight - window.innerHeight;
       const scrollProgress = Math.min(Math.max(window.scrollY / maxScroll, 0), 1);
 
