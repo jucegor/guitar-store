@@ -1857,7 +1857,7 @@
 
     let frames      = new Array(FRAME_COUNT);
     let loadedCount = 0;
-    let currentFrame = 0;
+    let currentFrame = FRAME_COUNT - 1;
     let rafPending  = false;
 
     function resizeCanvas() {
@@ -1915,7 +1915,7 @@
 
       updateHeroPhases(scrollProgress);
 
-      const idx = Math.round(scrollProgress * (FRAME_COUNT - 1));
+      const idx = Math.round((1 - scrollProgress) * (FRAME_COUNT - 1));
       if (idx !== currentFrame) {
         currentFrame = idx;
         if (!rafPending) {
@@ -1932,7 +1932,7 @@
         img.onload = () => {
           loadedCount++;
           loaderFill.style.width = (loadedCount / FRAME_COUNT * 100) + '%';
-          if (i === 0) drawFrame(0);
+          if (i === 0) drawFrame(FRAME_COUNT - 1);
           if (loadedCount === FRAME_COUNT) onAllLoaded();
         };
         img.onerror = () => {
@@ -1947,7 +1947,7 @@
     function onAllLoaded() {
       loader.classList.add('hidden');
       window.addEventListener('scroll', onScroll, { passive: true });
-      drawFrame(0);
+      drawFrame(FRAME_COUNT - 1);
     }
 
     window.addEventListener('resize', resizeCanvas);
