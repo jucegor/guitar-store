@@ -1915,7 +1915,13 @@
 
       updateHeroPhases(scrollProgress);
 
-      const idx = Math.round((1 - scrollProgress) * (FRAME_COUNT - 1));
+      // Fade-in canvas smoothly during the first 10% of scroll
+      const INTRO = 0.10;
+      canvas.style.opacity = Math.min(scrollProgress / INTRO, 1);
+
+      // Frame animation starts only after the intro fade completes
+      const frameProgress = Math.max((scrollProgress - INTRO) / (1 - INTRO), 0);
+      const idx = Math.round((1 - frameProgress) * (FRAME_COUNT - 1));
       if (idx !== currentFrame) {
         currentFrame = idx;
         if (!rafPending) {
@@ -1952,6 +1958,7 @@
 
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
+    canvas.style.opacity = '0';
     initHeroPhases();
     preload();
 
